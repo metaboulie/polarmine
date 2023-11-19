@@ -1,0 +1,15 @@
+# PyCharm
+.idea
+
+# Cache
+__pycache__
+.mypy_cache
+
+
+# VsCode
+.vscode
+
+# Private Resources
+src
+results 
+

@@ -13,3 +13,12 @@ __pycache__
 src
 results 
 
+# TODOs
+TODO.md
+
+# test
+test.py
+main.py
+
+# MacOS
+.DS_Store

@@ -12,23 +12,31 @@ class BaseAssociationSummary:
     Base abstract class for summary
 
     Parameters:
-        data (pl.DataFrame, optional): The input data. Defaults to None.
-        frequent_itemsets (list, optional): The frequent itemsets. Defaults to None.
-        itemset_length (int, optional): The length of itemsets. Defaults to ITEMSET_LENGTH.
+        data (pl.DataFrame, optional):
+            The input data. Defaults to None.
+        frequent_itemsets (list, optional):
+            The frequent itemsets. Defaults to None.
+        itemset_length (int, optional):
+            The length of itemsets. Defaults to ITEMSET_LENGTH.
 
     Attributes:
-        data (pl.DataFrame): The input data.
-        length (int): The number of rows in the data.
-        frequent_itemsets (list): The frequent itemsets.
-        itemset_length (int): The length of itemsets.
+        data (pl.DataFrame):
+            The input data.
+        length (int):
+            The number of rows in the data.
+        frequent_itemsets (list):
+            The frequent itemsets.
+        itemset_length (int):
+            The length of itemsets.
 
     Methods:
-        summary(): The abstract method to be implemented by subclasses, which returns a summary.
+        summary():
+            The abstract method to be implemented by subclasses, which returns a summary.
     """
 
     def __init__(self,
                  data: pl.DataFrame = None,
-                 frequent_itemsets: list = None,
+                 frequent_itemsets: list[set[str] | str] | None = None,
                  itemset_length: int = ITEMSET_LENGTH):
         """Initialize the class with data, frequent_itemsets, and itemset_length."""
         self.data = data
@@ -42,44 +50,60 @@ class BaseAssociationSummary:
 
 
 class FrequentItemsetsSummary(BaseAssociationSummary):
-    """Summary Frequent Itemsets
+    """
+    Summary Frequent Itemsets
 
     Parameters:
-        data (pl.DataFrame, optional): The input data. Defaults to None.
-        frequent_itemsets (list, optional): The frequent itemsets. Defaults to None.
-        itemset_length (int, optional): The length of itemsets. Defaults to ITEMSET_LENGTH.
+        data (pl.DataFrame, optional):
+            The input data. Defaults to None.
+        frequent_itemsets (list, optional):
+            The frequent itemsets. Defaults to None.
+        itemset_length (int, optional):
+            The length of itemsets. Defaults to ITEMSET_LENGTH.
 
     Attributes:
-        data (pl.DataFrame): The input data.
-        length (int): The number of rows in the data.
-        frequent_itemsets (list): The frequent itemsets.
-        itemset_length (int): The length of itemsets.
+        data (pl.DataFrame):
+            The input data.
+        length (int):
+            The number of rows in the data.
+        frequent_itemsets (list):
+            The frequent itemsets.
+        itemset_length (int):
+            The length of itemsets.
 
     Methods:
-        summary(): Returns a summary of the frequent itemsets.
+        summary():
+            Returns a summary of the frequent itemsets.
 
     Examples:
         ```python
         import polars as pl
-        from algorithms.association import FrequentItemsetsSummary
-        from utils.process import pivot_data
-        data = pl.read_csv("./src/BlackFridaytrain.csv")
+        from polarmine.algorithms.association import FrequentItemsetsSummary
+        from polarmine.utils.process import pivot_data
+        data = pl.read_csv("polarmine/datasets/BlackFridaytrain.csv")
         sale_data = pivot_data(data, ["User_ID", "Product_ID"], "Count", "User_ID", "Product_ID").drop(["User_ID"])
         apriori = Apriori(sale_data)
         apriori.fit()
-        frequent_itemsets = apriori.frequent_itemsets
-        Summary = FrequentItemsetsSummary(apriori.data, frequent_itemsets, 2)
-        Summary.summary()
+        Summary = FrequentItemsetsSummary(apriori.data, apriori.frequent_itemsets, 2)
+        print(Summary.summary())  # Output: Summary.summary()
         ```
     """
 
     def __init__(self,
                  data: pl.DataFrame = None,
-                 frequent_itemsets: list = None,
+                 frequent_itemsets: list[set[str] | str] | None = None,
                  itemset_length: int = ITEMSET_LENGTH, ):
         super().__init__(data, frequent_itemsets, itemset_length)
 
     def summary(self) -> pl.DataFrame:
+        """
+        Generate a summary of the frequent itemsets.
+
+        Returns:
+            pl.DataFrame:
+                A summary of the frequent itemsets.
+        """
+        # Check if the frequent itemsets are found
         if self.frequent_itemsets is None:
             raise ValueError("Frequent itemsets not found")
         # Create a new DataFrame to store the _summary
@@ -98,24 +122,67 @@ class FrequentItemsetsSummary(BaseAssociationSummary):
 
 
 class AssociationRulesSummary(BaseAssociationSummary):
-    """Summary Association Rules"""
+    """
+    Summary Association Rules
+
+    Parameters:
+        data (pl.DataFrame, optional):
+            The input data. Defaults to None.
+        frequent_itemsets (list, optional):
+            The frequent itemsets. Defaults to None.
+        itemset_length (int, optional):
+            The length of itemsets. Defaults to ITEMSET_LENGTH.
+        rule (str, optional):
+            The rule to filter the frequent itemsets. Defaults to ASSOCIATION_RULE,
+            options are 'confidence', 'support', 'lift', 'leverage', 'antecedent_support' and 'consequent_support'.
+        min_value (float, optional):
+            The minimum value for the rule. Defaults to ASSOCIATION_MIN_VALUE[ASSOCIATION_RULE].
+
+    Attributes:
+        data (pl.DataFrame):
+            The input data.
+        length (int):
+            The number of rows in the data.
+        frequent_itemsets (list):
+            The frequent itemsets.
+        itemset_length (int):
+            The length of itemsets.
+        rule (str):
+            The rule to filter the frequent itemsets.
+        min_value (float):
+            The minimum value for the rule.
+        schema (list):
+            The schema of the summary.
+
+    Methods:
+        summary():
+            Returns a summary of the association rules.
+        calculate_association_rules():
+            Calculate the association rules based on the given parameters, rule and minimum value condition.
+
+    Examples:
+        ```python
+        import polars as pl
+        from polarmine.algorithms.association import AssociationRulesSummary, Apriori
+        from polarmine.utils.process import pivot_data
+        data = pl.read_csv("polarmine/datasets/BlackFridaytrain.csv")
+        sale_data = pivot_data(data, ["User_ID", "Product_ID"], "Count", "User_ID", "Product_ID").drop(["User_ID"])
+        apriori = Apriori(sale_data)
+        apriori.fit()
+        Summary = AssociationRulesSummary(apriori.data, apriori.frequent_itemsets, 2)
+        print(Summary.summary())  # Output: Summary.summary()
+        ```
+
+    References:
+        - [Association Rules](https://rasbt.github.io/mlxtend/api_subpackages/mlxtend.frequent_patterns/#association_rules)
+    """
     def __init__(self,
                  data: pl.DataFrame = None,
                  frequent_itemsets: list[set[str] | str] | None = None,
                  itemset_length: int = ITEMSET_LENGTH,
                  rule: str = ASSOCIATION_RULE,
                  min_value: float = ASSOCIATION_MIN_VALUE[ASSOCIATION_RULE], ):
-        """
-        Initialize the class with the given parameters.
-
-        Args:
-            data: DataFrame containing the transaction data.
-            frequent_itemsets: List of frequent itemsets.
-            itemset_length: Length of the itemsets.
-            rule: Association rule type to filter the frequent itemsets, default is 'confidence', options are
-                'confidence', 'support', 'lift', 'leverage', 'antecedent_support' and 'consequent_support'.
-            min_value: Minimum value for the association rule.
-        """
+        """Initialize the class with the given parameters."""
         super().__init__(data, frequent_itemsets, itemset_length)
         self.rule = rule
         self.min_value = min_value
@@ -135,7 +202,8 @@ class AssociationRulesSummary(BaseAssociationSummary):
         Generate a summary of frequent itemsets and association rules.
 
         Returns:
-            result (pl.DataFrame): A DataFrame containing the summary.
+            result (pl.DataFrame):
+                A DataFrame containing the summary.
         """
         # Check if frequent itemsets of length 2 exist
         if self.itemset_length != 2:
@@ -164,14 +232,23 @@ class AssociationRulesSummary(BaseAssociationSummary):
         """
         Calculate the association rules based on the given parameters, rule and minimum value condition.
 
-        Args:
-            antecedents: Name of the antecedents column in the data.
-            consequents: Name of the consequents column in the data.
-            rule: Association rule type to filter the rules.
-            min_value: Minimum value for the association rule.
+        Parameters:
+            antecedents (str):
+                The antecedents of the rule.
+            consequents (str):
+                The consequents of the rule.
+            rule (str):
+                The rule to filter the frequent itemsets.
+            min_value (float):
+                The minimum value for the rule.
 
         Returns:
-            result (pl.DataFrame) if the rule meets the minimum value condition, otherwise None.
+            result (pl.DataFrame)
+                A DataFrame containing the summary if the rule meets the minimum value condition, otherwise None.
+
+        Raises:
+            AssertionError:
+                If the frequent itemsets of length 2 are not found.
         """
         # Get the antecedents and consequents columns from the data
         _antecedents = self.data[antecedents]
@@ -226,77 +303,205 @@ class AssociationRulesSummary(BaseAssociationSummary):
 
 
 class BaseAssociation:
-    """Base abstract class for association algorithms"""
+    """
+    Base abstract class for association algorithms
+
+    Parameters:
+        data(pl.DataFrame):
+            DataFrame containing the transaction data.
+        itemset_length(int):
+            Length of the itemsets.
+        min_support(float):
+            Minimum support for frequent itemsets.
+
+    Attributes:
+        data(pl.DataFrame):
+            DataFrame containing the transaction data.
+        length(int):
+            Number of transactions in the data.
+        frequent_itemsets(list):
+            List of frequent itemsets.
+        itemset_length(int):
+            Length of the itemsets.
+        min_support(float):
+            Minimum support for frequent itemsets.
+
+    Methods:
+        fit():
+            The abstract method to be implemented by subclasses,
+            which will fit the association algorithm with the given parameters.
+    """
 
     def __init__(self, data: pl.DataFrame = None, itemset_length=ITEMSET_LENGTH, min_support=ASSOCIATION_MIN_SUPPORT):
-        """
-        Initialize the BaseAssociation class with the given parameters.
-
-        Args:
-            data: DataFrame containing the transaction data.
-            itemset_length: Length of the itemsets.
-            min_support: Minimum support for frequent itemsets.
-        """
+        """Initialize the BaseAssociation class with the given parameters."""
         self.data = data
         self.length = data.shape[0]
-        self.frequent_itemsets = list()
+        self.frequent_itemsets: list[set[str] | str] | None = list()
         self.itemset_length = itemset_length
         self.min_support = min_support
 
     @abstractmethod
     def fit(self, itemset_length=ITEMSET_LENGTH, min_support=ASSOCIATION_MIN_SUPPORT):
+        """Fit the association algorithm with the given parameters."""
         pass
 
 
 class Apriori(BaseAssociation):
+    """
+    Apriori algorithm implementation
+
+    Parameters:
+        data(pl.DataFrame):
+            DataFrame containing the transaction data.
+        itemset_length(int):
+            Length of the itemsets.
+        min_support(float):
+            Minimum support for frequent itemsets.
+
+    Attributes:
+        data(pl.DataFrame):
+            DataFrame containing the transaction data.
+        length(int):
+            Number of transactions in the data.
+        frequent_itemsets(list):
+            List of frequent itemsets.
+        itemset_length(int):
+            Length of the itemsets.
+        min_support(float):
+            Minimum support for frequent itemsets.
+        current_itemset_length(int):
+            Current length of the itemsets.
+
+    Methods:
+        fit():
+            Fit the Apriori algorithm with the given parameters.
+        generate_frequent_one_itemsets():
+            Generate frequent one-itemsets.
+        generate_frequent_k_itemsets():
+            Generate frequent k-itemsets.
+        generate_candidate_itemsets():
+            Generate candidate itemsets.
+
+    Examples:
+        ```python
+        import polars as pl
+        from polarmine.algorithms.association import Apriori
+        from polarmine.utils.process import pivot_data
+        data = pl.read_csv("polarmine/datasets/BlackFridaytrain.csv")
+        sale_data = pivot_data(data, ["User_ID", "Product_ID"], "Count", "User_ID", "Product_ID").drop(["User_ID"])
+        apriori = Apriori(sale_data)
+        frequent_itemsets = apriori.fit()
+        ```
+
+    References:
+        - [Apriori](https://rasbt.github.io/mlxtend/api_subpackages/mlxtend.frequent_patterns/#apriori)
+    """
     def __init__(self, data: pl.DataFrame, itemset_length: int = ITEMSET_LENGTH, min_support=ASSOCIATION_MIN_SUPPORT):
         super().__init__(data, itemset_length, min_support)
         self.current_itemset_length = 1
 
     def fit(self, min_support=ASSOCIATION_MIN_SUPPORT, itemset_length=ITEMSET_LENGTH) -> list:
-        self.itemset_length, self.min_support = itemset_length, min_support
-        self.frequent_itemsets = self.generate_frequent_one_itemsets
+        """
+        Fits the association model to the data.
 
+        Parameters:
+            min_support (float):
+                The minimum support threshold for frequent itemsets.
+            itemset_length (int):
+                The maximum length of itemsets to generate.
+
+        Returns:
+            list: The frequent itemsets generated by the model.
+        """
+        # Set the initial values for itemset_length and min_support
+        self.itemset_length, self.min_support = itemset_length, min_support
+
+        # Generate frequent one-itemsets
+        self.frequent_itemsets = self.generate_frequent_one_itemsets()
+
+        # Generate frequent k-itemsets until the maximum itemset length is reached or
+        # no more frequent itemsets are found
         while self.current_itemset_length < self.itemset_length and self.frequent_itemsets:
             self.current_itemset_length += 1
-            self.frequent_itemsets = self.generate_frequent_k_itemsets
+            self.frequent_itemsets = self.generate_frequent_k_itemsets()
+
         return self.frequent_itemsets
 
-    @property
     def generate_frequent_one_itemsets(self) -> list[str | None]:
-        frequent_one_itemsets = list()
-        for col in self.data.columns:
-            if self.data[col].sum() / self.length >= self.min_support:
-                frequent_one_itemsets.append(col)
-        return frequent_one_itemsets
+        """
+        Generate frequent one-itemsets based on the given minimum support threshold.
 
-    @property
+        Returns:
+            A list of frequent one-itemsets.
+        """
+        frequent_one_itemsets = list()  # Initialize an empty list to store frequent one-itemsets
+        for col in self.data.columns:  # Iterate over each column in the data
+            # Check if the column meets the minimum support threshold
+            if self.data[col].sum() / self.length >= self.min_support:
+                frequent_one_itemsets.append(col)  # Add the column to the list of frequent one-itemsets
+        return frequent_one_itemsets  # Return the list of frequent one-itemsets
+
     def generate_frequent_k_itemsets(self) -> list[set[str] | None]:
+        """
+        Generate frequent k-itemsets based on the given minimum support threshold.
+
+        Returns:
+            A list of frequent k-itemsets.
+        """
+        # Generate candidates for frequent k-itemsets
         candidates = self.generate_candidates(self.frequent_itemsets, self.current_itemset_length)
+
+        # List to store frequent k-itemsets
         frequent_k_itemsets = list()
+
+        # Iterate over each candidate
         for candidate in tqdm(candidates):
+            # Calculate the support for each item in the candidate
             support = pl.Series([1] * self.length)
             for item in candidate:
                 support *= self.data[item]
+
+            # Check if the support meets the minimum threshold
             if support.sum() / self.length >= self.min_support:
+                # Add the frequent k-itemset to the list
                 frequent_k_itemsets.append(candidate)
+
+        # Return the list of frequent k-itemsets
         return frequent_k_itemsets
 
     @staticmethod
     def generate_candidates(prev_itemsets, k) -> list:
-        candidates = list()
-        unique_candidates = set()
+        """
+        Generate candidate itemsets of size k from the previous itemsets.
 
+        Parameters:
+            prev_itemsets (list):
+                List of previous itemsets.
+            k (int):
+                Size of the candidate itemsets.
+
+        Returns:
+            list: List of candidate itemsets of size k.
+        """
+
+        candidates = list()  # List to store candidate itemsets
+        unique_candidates = set()  # Set to store unique candidate itemsets
+
+        # Iterate over each itemset in prev_itemsets
         for i, itemset1 in tqdm(enumerate(prev_itemsets)):
+            # Iterate over each itemset after itemset1 in prev_itemsets
             for itemset2 in prev_itemsets[i + 1:]:
                 if k - 1 == 1:
                     union_set = {itemset1, }.union({itemset2, })
                 else:
                     union_set = set(itemset1).union(set(itemset2))
+                # Check if the size of the union set is equal to k
                 if len(union_set) == k:
                     tuple_union_set = tuple(sorted(union_set))
+                    # Check if the tuple representation of the union set is not already in unique_candidates
                     if tuple_union_set not in unique_candidates:
                         unique_candidates.add(tuple_union_set)
+                        # Append the set representation of the tuple union set to candidates
                         candidates.append(set(tuple_union_set))
 
         return candidates

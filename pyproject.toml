@@ -1,0 +1,16 @@
+[tool.poetry]
+name = "polarmine"
+version = "0.1.0"
+description = "Modern Data Mining Algorithms with polars"
+authors = ["metaboulie <eugeneheiner14@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+polars = "^0.19.15"
+tqdm = "^4.66.1"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
